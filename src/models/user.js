@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 const bcrupt = require('bcryptjs')
 const jwt = require('jsonwebtoken') 
+const Task = require('/task')
 
 const userSchema = mongoose.Schema({
     name:{
@@ -47,6 +48,8 @@ const userSchema = mongoose.Schema({
             required:true
         }
     }]
+},{//This adds timestamps in the response
+    timestamps: true
 })
 
 userSchema.virtual('myTasks', {
@@ -95,11 +98,19 @@ userSchema.statics.findByCredentials = async (email,password) => {
     return user
 }
 
+//Hashes password before saving
 userSchema.pre('save', async function (next) { //Not arrow function as this does not gets bind to arrow function
     const user = this
     if(user.isModified('password')){
         user.password = await bcrupt.hash(user.password,8)
     }
+    next()
+})
+
+//Delete Tasks when user is removed
+userSchema.pre('remove', async function(next) {
+    const user = this
+    await Task.deleteMany({owner:user._id})
     next()
 })
 

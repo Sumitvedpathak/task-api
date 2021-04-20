@@ -24,10 +24,19 @@ router.post('/task', auth, async (req,res) => {
     // })
 })
 
+//GET /tasks?completed=true
 router.get('/tasks', auth, async (req,res) => {
     try {
+        const match = {}
+        if(req.query.completed){
+            match.completed = req.query.completed === 'true'
+        }
         //const tasks = await Task.find({owner:req.user._id})// OR
-        await req.user.populate('myTasks').execPopulate()
+        // await req.user.populate('myTasks').execPopulate() //to filter out task below code is modified
+        await req.user.populate({
+            path: 'myTasks',
+            match
+        }).execPopulate()
         res.status(200).send(req.user.myTasks)
     } catch(e) {
         res.status(400).send(e)
