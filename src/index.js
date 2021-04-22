@@ -20,7 +20,6 @@ app.listen(port, () => {
 // const myFunction = async () => {
 //     const token = jwt.sign({_id:'test123'},'teststring',{expiresIn:'5 minutes'})
 //     console.log(token)
-
 //     console.log(jwt.verify(token,'teststring'))
 // }
 
