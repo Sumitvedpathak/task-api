@@ -25,17 +25,33 @@ router.post('/task', auth, async (req,res) => {
 })
 
 //GET /tasks?completed=true
+//Pagination - GET /tasks?limit=10&page=0
+//Sorting - GET /tasks?sortby=createdat:desc
 router.get('/tasks', auth, async (req,res) => {
     try {
         const match = {}
+        const sort = {} // sort object created for mongoose
         if(req.query.completed){
             match.completed = req.query.completed === 'true'
         }
+        if(req.query.page !== undefined && req.query.limit===undefined){
+            req.query.limit=1
+        }
+        if(req.query.sortby){
+            const parts = req.query.sortby.split(':')
+            sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
+        }
+        console.log(req.query.sortby)
         //const tasks = await Task.find({owner:req.user._id})// OR
         // await req.user.populate('myTasks').execPopulate() //to filter out task below code is modified
         await req.user.populate({
             path: 'myTasks',
-            match
+            match,
+            options: {
+                limit: parseInt(req.query.limit),//how many records to return
+                skip: parseInt(req.query.limit) * parseInt(req.query.page),//Skip - skips the number of records
+                sort
+            }
         }).execPopulate()
         res.status(200).send(req.user.myTasks)
     } catch(e) {
