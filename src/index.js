@@ -1,17 +1,19 @@
-const express = require('express')
-require('./db/mongoose')
+const app = require('./app')
+// const express = require('express')
+// require('./db/mongoose')
 
-const userRouter = require('./routers/user')
-const taskRouter = require('./routers/task')
+// const userRouter = require('./routers/user')
+// const taskRouter = require('./routers/task')
 
-const app = express()
+// const app = express()
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 4000
 
-app.use(express.json())//customize server to access directly an json object
-app.use(userRouter)
-app.use(taskRouter)
+// app.use(express.json())//customize server to access directly an json object
+// app.use(userRouter)
+// app.use(taskRouter)
 
+//Moved above code to app.js file so that this code can be called by jest test suite by supertest
 app.listen(port, () => {
     console.log('Server running on '+ port)
 })

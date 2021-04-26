@@ -47,7 +47,10 @@ const userSchema = mongoose.Schema({
             type:String,
             required:true
         }
-    }]
+    }],
+    avatar:{
+        type:Buffer
+    }
 },{//This adds timestamps in the response
     timestamps: true
 })
@@ -65,6 +68,7 @@ userSchema.methods.getPublicProfile = async function() {
     const publicUserProfile = user.toObject()
     delete publicUserProfile.password
     delete publicUserProfile.tokens
+    delete publicUserProfile.avatar
     return publicUserProfile
 }
 

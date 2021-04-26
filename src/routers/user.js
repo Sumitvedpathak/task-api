@@ -1,6 +1,7 @@
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 const express = require('express')
+const multer = require('multer')
 const router = new express.Router()
 
 router.post('/user/login',async (req,res) => {
@@ -47,7 +48,7 @@ router.post('/user', async (req,res) => {
         await user.save()
         res.status(201).send({user,token})
     } catch(e) {
-        res.status(400).send(e)
+        res.status(400).send(e.message)
     }
 })
 
@@ -162,5 +163,47 @@ router.delete('/user/me',auth , async (req, res) => {
 //         return res.status(500).send(e)
 //     }
 // })
+
+
+const upload = multer({
+    // dest: 'avatars',// Use this parameter only if wanted to store it in a directory.
+    limits: 1000000,
+    fileFilter(req, file, cb){
+        if(!file.originalname.endsWith('.json')){
+        // if(!file.originalname.match(/\.(gif|png|jpg)$/)){
+            return cb(new Error('File must be PNG'))
+        }
+        cb(undefined,true)
+    }
+})
+
+router.post('/user/me/avatar', auth, upload.single('avatar'), async (req, res) => {
+    //sharp can resize or crop the pictures by using below code.
+    //const buff = await sharp(req.file.buffer).resize({width : 250, height: 250}).png().toBuffer();
+    req.user.avatar = req.file.buffer //Multer will only allow this if there is no dest available in upload object.
+    await req.user.save()
+    res.send()
+}, (error, req, res, next) => { //This funcation is used to suppress HTML form of error from 3rd pary 
+    res.status(400).send({error: error.message})
+})
+
+router.get('/user/:id/avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+        if(!user || !user.avatar){
+            throw Error('Image problem')
+        }
+        res.set('Content-Type','image/jpg')
+        res.send(user.avatar)
+    } catch (e) {
+        res.status(400).send(e.message)
+    }
+})
+
+router.delete('/user/me/avatar', auth, async (req, res) => {
+    req.user.avatar = undefined
+    await req.user.save()
+    res.send()
+})
 
 module.exports = router
